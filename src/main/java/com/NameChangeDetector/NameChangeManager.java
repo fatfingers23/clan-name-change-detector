@@ -1,5 +1,6 @@
 package com.NameChangeDetector;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -14,8 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.util.Text;
 import static net.runelite.http.api.RuneLiteAPI.GSON;
-import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -36,6 +35,13 @@ public class NameChangeManager
 	private String wiseOldManBaseApiUrl = "https://api.wiseoldman.net";
 	private String crystalMathBaseApiUrl = "https://crystalmathlabs.com";
 
+	private List<String> crystalMathLabResponses = ImmutableList.of(
+		"-1",
+		"-2",
+		"-3",
+		"-4"
+	);
+
 	@Inject
 	public NameChangeManager(OkHttpClient client, ClientThread clientThread)
 	{
@@ -49,6 +55,10 @@ public class NameChangeManager
 		List<String> previousNames =  new ArrayList<>();
 		List<String> namesFromWOM = this.getPreviousNamesFromWOM(cleanRsn);
 		previousNames.addAll(namesFromWOM);
+		String nameChangeFromMathLabs = getPreviousNamesFromMathLabs(cleanRsn);
+		if(!previousNames.contains(nameChangeFromMathLabs) && nameChangeFromMathLabs != ""){
+			previousNames.add(nameChangeFromMathLabs);
+		}
 		return previousNames;
 	}
 
@@ -70,5 +80,29 @@ public class NameChangeManager
 		}
 
 		return Collections.emptyList();
+	}
+
+	public String getPreviousNamesFromMathLabs(String rsn){
+
+		String url = this.crystalMathBaseApiUrl + "/tracker/api.php?type=previousname&player=" + rsn;
+
+		Request request = new Request.Builder().url(url).build();
+
+		try(Response response = client.newCall(request).execute())
+		{
+			String stringResponse = response.body().string();
+			if(crystalMathLabResponses.contains(stringResponse)){
+				return "";
+			}else {
+				return stringResponse;
+			}
+
+		}
+		catch (IOException e)
+		{
+			log.error("failed to check Wise Old Man for name changes: {}", e.toString());
+		}
+
+		return "";
 	}
 }

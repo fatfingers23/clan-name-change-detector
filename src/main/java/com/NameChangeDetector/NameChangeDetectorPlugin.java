@@ -2,17 +2,14 @@ package com.NameChangeDetector;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ObjectArrays;
-import com.google.inject.Provides;
 import java.util.List;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.Player;
-import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.widgets.WidgetInfo;
@@ -20,7 +17,6 @@ import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
-import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -33,15 +29,13 @@ import org.apache.commons.lang3.ArrayUtils;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Clanmate Name Change Detector"
+	name = "Name Change Detector"
 )
 public class NameChangeDetectorPlugin extends Plugin
 {
 	@Inject
 	private Client client;
 
-	@Inject
-	private NameChangeDetectorConfig config;
 
 	@Inject
 	private NameChangeManager nameChangeManager;
@@ -63,38 +57,9 @@ public class NameChangeDetectorPlugin extends Plugin
 		"Message", "Add ignore", "Remove friend", "Delete", "Kick", "Reject"
 	);
 
-	@Override
-	protected void startUp() throws Exception
-	{
-		log.info("Example started!");
-	}
-
-	@Override
-	protected void shutDown() throws Exception
-	{
-		log.info("Example stopped!");
-	}
-
-	@Subscribe
-	public void onGameStateChanged(GameStateChanged gameStateChanged)
-	{
-		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
-		{
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Example says " + config.greeting(), null);
-		}
-	}
-
-	@Provides
-	NameChangeDetectorConfig provideConfig(ConfigManager configManager)
-	{
-		return configManager.getConfig(NameChangeDetectorConfig.class);
-	}
 
 	@Subscribe
 	public void onMenuEntryAdded(MenuEntryAdded event) {
-//		if (!config.menuOption() || (!hotKeyPressed && config.useHotkey())) {
-//			return;
-//		}
 
 		int groupId = WidgetInfo.TO_GROUP(event.getActionParam1());
 		String option = event.getOption();
@@ -169,11 +134,21 @@ public class NameChangeDetectorPlugin extends Plugin
 			response.append(ChatColorType.HIGHLIGHT).append(currentRsn).append(ChatColorType.NORMAL);
 			response.append(" has also gone by: ").append(ChatColorType.HIGHLIGHT);
 			int timesRan = 1;
+			boolean whoCaresAboutAOxfordComma = false;
 			for (String name : names)
 			{
+
+				if(whoCaresAboutAOxfordComma && timesRan == countOfNames){
+					response.append(ChatColorType.NORMAL).append(" and ").append(ChatColorType.HIGHLIGHT);
+				}
 				response.append(name);
+
 				if(timesRan != countOfNames){
-					response.append(", ");
+					response.append(ChatColorType.NORMAL).append(", ").append(ChatColorType.HIGHLIGHT);
+				}
+
+				if(timesRan + 1 == countOfNames){
+					whoCaresAboutAOxfordComma = true;
 				}
 				timesRan++;
 			}
@@ -183,8 +158,6 @@ public class NameChangeDetectorPlugin extends Plugin
 				.append(ChatColorType.HIGHLIGHT);
 			response.append(currentRsn);
 		}
-
-
 
 		chatMessageManager.queue(QueuedMessage.builder()
 			.type(ChatMessageType.CONSOLE)
