@@ -3,6 +3,7 @@ package com.NameChangeDetector;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ObjectArrays;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
@@ -36,12 +37,14 @@ public class NameChangeDetectorPlugin extends Plugin
 	@Inject
 	private Client client;
 
-
 	@Inject
 	private NameChangeManager nameChangeManager;
 
 	@Inject
 	private ChatMessageManager chatMessageManager;
+
+	@Inject
+	private ScheduledExecutorService executor;
 
 	private static final String INVESTIGATE = "Previous names";
 
@@ -75,17 +78,13 @@ public class NameChangeDetectorPlugin extends Plugin
 			}
 		}
 
-		final MenuEntry lookup = new MenuEntry();
-		lookup.setOption(INVESTIGATE);
-		lookup.setTarget(event.getTarget());
-		lookup.setType(MenuAction.RUNELITE.getId());
-		lookup.setParam0(event.getActionParam0());
-		lookup.setParam1(event.getActionParam1());
-		lookup.setIdentifier(event.getIdentifier());
-
-		MenuEntry[] newMenu = ObjectArrays.concat(client.getMenuEntries(), lookup);
-		ArrayUtils.swap(newMenu, newMenu.length - 1, newMenu.length - 2);
-		client.setMenuEntries(newMenu);
+		client.createMenuEntry(-1)
+			.setOption(INVESTIGATE)
+			.setTarget(event.getTarget())
+			.setType(MenuAction.RUNELITE)
+			.setParam0(event.getActionParam0())
+			.setParam1(event.getActionParam1())
+			.setIdentifier(event.getIdentifier());
 	}
 
 	//https://github.com/while-loop/runelite-plugins/blob/2b3ded2bb6d12546bf46884c6ec0d876cce99636/src/main/java/com/runewatch/RuneWatchPlugin.java#L303
@@ -114,9 +113,11 @@ public class NameChangeDetectorPlugin extends Plugin
 			if (target != null) {
 				//https://api.wiseoldman.net/players/username/harming/names
 				//https://crystalmathlabs.com/tracker/api.php?type=previousname&player=Harming
-				//caseManager.get(event.getMenuTarget(), (rwCase) -> alertPlayerWarning(target, true, false));
-				List<String> names = nameChangeManager.getPreviousNames(target);
-				printPreviousNames(target, names);
+				executor.execute(() -> {
+					List<String> names = nameChangeManager.getPreviousNames(target);
+					printPreviousNames(target, names);
+				});
+
 			}
 		}
 

@@ -70,9 +70,10 @@ public class NameChangeManager
 
 		try(Response response = client.newCall(request).execute())
 		{
-			List<WOMNameChangesModel> nameChanges = GSON.fromJson(new InputStreamReader(response.body().byteStream()), typeToken);
-			return nameChanges.stream().map(WOMNameChangesModel::getOldName).collect(Collectors.toList());
-
+			if(response.isSuccessful()){
+				List<WOMNameChangesModel> nameChanges = GSON.fromJson(new InputStreamReader(response.body().byteStream()), typeToken);
+				return nameChanges.stream().map(WOMNameChangesModel::getOldName).collect(Collectors.toList());
+			}
 		}
 		catch (IOException e)
 		{
@@ -90,13 +91,14 @@ public class NameChangeManager
 
 		try(Response response = client.newCall(request).execute())
 		{
-			String stringResponse = response.body().string();
-			if(crystalMathLabResponses.contains(stringResponse)){
-				return "";
-			}else {
-				return stringResponse;
+			if(response.isSuccessful()){
+				String stringResponse = response.body().string();
+				if(crystalMathLabResponses.contains(stringResponse)){
+					return "";
+				}else {
+					return stringResponse;
+				}
 			}
-
 		}
 		catch (IOException e)
 		{
