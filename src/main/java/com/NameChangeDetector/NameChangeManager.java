@@ -100,7 +100,7 @@ public class NameChangeManager
 		}
 		catch (IOException e)
 		{
-			log.error("failed to check Wise Old Man for name changes: {}", e.toString());
+			log.error("failed to check Crystal Math Labs for name changes: {}", e.toString());
 		}
 
 		return "";
