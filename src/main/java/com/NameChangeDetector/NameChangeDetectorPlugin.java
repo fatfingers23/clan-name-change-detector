@@ -12,7 +12,8 @@ import net.runelite.api.MenuEntry;
 import net.runelite.api.Player;
 import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.MenuOptionClicked;
-import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.api.widgets.ComponentID;
+import net.runelite.api.widgets.InterfaceID;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.chat.ChatMessageManager;
@@ -47,22 +48,25 @@ public class NameChangeDetectorPlugin extends Plugin
 	private static final String INVESTIGATE = "Previous names";
 
 	private static final List<Integer> MENU_WIDGET_IDS = ImmutableList.of(
-		WidgetInfo.FRIENDS_CHAT.getGroupId(),
-		WidgetInfo.CHATBOX.getGroupId(),
-		WidgetInfo.RAIDING_PARTY.getGroupId(),
-		WidgetInfo.IGNORE_LIST.getGroupId(),
-		WidgetInfo.CLAN_MEMBER_LIST.getGroupId()
+		InterfaceID.FRIEND_LIST,
+		ComponentID.CHATBOX_FRAME,
+		InterfaceID.RAIDING_PARTY,
+		InterfaceID.PRIVATE_CHAT,
+		InterfaceID.FRIENDS_CHAT,
+		InterfaceID.IGNORE_LIST,
+		ToGroup(ComponentID.CLAN_MEMBERS),
+		ToGroup(ComponentID.CLAN_GUEST_MEMBERS)
 	);
 
 	private static final ImmutableList<String> AFTER_OPTIONS = ImmutableList.of(
 		"Message", "Add ignore", "Remove friend", "Delete", "Kick", "Reject"
 	);
 
-	
+
 	@Subscribe
 	public void onMenuEntryAdded(MenuEntryAdded event) {
 
-		int groupId = WidgetInfo.TO_GROUP(event.getActionParam1());
+		int groupId = ToGroup(event.getActionParam1());
 		String option = event.getOption();
 
 		if (!MENU_WIDGET_IDS.contains(groupId) || !AFTER_OPTIONS.contains(option)) {
@@ -88,7 +92,6 @@ public class NameChangeDetectorPlugin extends Plugin
 	//https://github.com/while-loop/runelite-plugins/blob/2b3ded2bb6d12546bf46884c6ec0d876cce99636/src/main/java/com/runewatch/RuneWatchPlugin.java#L303
 	@Subscribe
 	public void onMenuOptionClicked(MenuOptionClicked event) {
-		int groupId = WidgetInfo.TO_GROUP(event.getWidgetId());
 		String option = event.getMenuOption();
 		MenuAction action = event.getMenuAction();
 
@@ -151,7 +154,7 @@ public class NameChangeDetectorPlugin extends Plugin
 				}
 				timesRan++;
 			}
-			
+
 		}else{
 			response.append("No previous names were found for ")
 				.append(ChatColorType.HIGHLIGHT);
@@ -162,5 +165,9 @@ public class NameChangeDetectorPlugin extends Plugin
 			.type(ChatMessageType.CONSOLE)
 			.runeLiteFormattedMessage(response.build())
 			.build());
+	}
+
+	public static int ToGroup(int id) {
+		return id >>> 16;
 	}
 }
