@@ -1,7 +1,6 @@
 package com.NameChangeDetector;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ObjectArrays;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.inject.Inject;
@@ -22,7 +21,6 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.util.Text;
-import org.apache.commons.lang3.ArrayUtils;
 
 //Some code taken from while-loop/runelite-plugin runewatch to help with menu entry creation.
 //https://github.com/while-loop/runelite-plugins/blob/runewatch/src/main/java/com/runewatch/RuneWatchPlugin.java
@@ -60,7 +58,7 @@ public class NameChangeDetectorPlugin extends Plugin
 		"Message", "Add ignore", "Remove friend", "Delete", "Kick", "Reject"
 	);
 
-
+	
 	@Subscribe
 	public void onMenuEntryAdded(MenuEntryAdded event) {
 

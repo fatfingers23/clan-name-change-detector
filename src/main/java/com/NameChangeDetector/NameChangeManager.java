@@ -23,16 +23,14 @@ import okhttp3.Response;
 @Singleton
 public class NameChangeManager
 {
-
+	private static final String USER_AGENT = "Name Change Detector:https://github.com/fatfingers23/osrs-name-change-detector";
 	private final OkHttpClient client;
-	private final ClientThread clientThread;
-
 	private static final Type typeToken = new TypeToken<List<WOMNameChangesModel>>() {
 	}.getType();
 
 	//https://api.wiseoldman.net/players/username/{PlayerName}/names
 	//https://crystalmathlabs.com/tracker/api.php?type=previousname&player={PlayerName}
-	private String wiseOldManBaseApiUrl = "https://api.wiseoldman.net";
+	private String wiseOldManBaseApiUrl = "https://api.wiseoldman.net/v2";
 	private String crystalMathBaseApiUrl = "https://crystalmathlabs.com";
 
 	private List<String> crystalMathLabResponses = ImmutableList.of(
@@ -43,10 +41,9 @@ public class NameChangeManager
 	);
 
 	@Inject
-	public NameChangeManager(OkHttpClient client, ClientThread clientThread)
+	public NameChangeManager(OkHttpClient client)
 	{
 		this.client = client;
-		this.clientThread = clientThread;
 	}
 
 	public List<String> getPreviousNames(String rsn){
@@ -64,9 +61,12 @@ public class NameChangeManager
 
 	public List<String> getPreviousNamesFromWOM(String rsn){
 
-		String url = this.wiseOldManBaseApiUrl + "/players/username/" + rsn + "/names";
+		String url = this.wiseOldManBaseApiUrl + "/players/" + rsn + "/names";
 
-		Request request = new Request.Builder().url(url).build();
+		Request request = new Request.Builder().url(url)
+				.header("User-Agent", USER_AGENT)
+				.build();
+
 
 		try(Response response = client.newCall(request).execute())
 		{
@@ -87,7 +87,9 @@ public class NameChangeManager
 
 		String url = this.crystalMathBaseApiUrl + "/tracker/api.php?type=previousname&player=" + rsn;
 
-		Request request = new Request.Builder().url(url).build();
+		Request request = new Request.Builder().url(url)
+				.header("User-Agent", USER_AGENT)
+				.build();
 
 		try(Response response = client.newCall(request).execute())
 		{
