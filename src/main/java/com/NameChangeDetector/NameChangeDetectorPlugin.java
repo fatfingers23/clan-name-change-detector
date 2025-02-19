@@ -99,9 +99,9 @@ public class NameChangeDetectorPlugin extends Plugin
 		if ((action == MenuAction.RUNELITE || action == MenuAction.RUNELITE_PLAYER) && option.equals(INVESTIGATE)) {
 			final String target;
 			if (action == MenuAction.RUNELITE_PLAYER) {
-				// The player id is included in the event, so we can use that to get the player name,
+				// The player is included in the event, so we can use that to get the player name,
 				// which avoids having to parse out the combat level and any icons preceding the name.
-				Player player = client.getCachedPlayers()[event.getId()];
+				Player player = event.getMenuEntry().getPlayer();
 				if (player != null) {
 					target = player.getName();
 				} else {
